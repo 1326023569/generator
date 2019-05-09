@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    function promise(sm) {
+      return new Promise((res, rej) => {
+        setTimeout(() => {
+          res(sm)
+        }, sm);
+      })
+    }
+    function* generator() {
+      var a = yield promise(1000);
+      console.log('第一次执行',a)
+      var b = yield promise(3000);
+      console.log('第二次执行',b)
+      return 3
+    }
+    // 上一次的next执行并没有进行赋值的操作 同时下一次的执行就等于是上次的结束和当前next的开始
+    function run(generator) {
+      let gen = generator()
+      function next(data) {
+        let  returnedValue = gen.next(data)
+        if(returnedValue.done){
+          return returnedValue.value
+        }else{
+          // 判断是否为promise
+          if(returnedValue.value.then){
+            returnedValue.value.then(res=>{
+              next(res)
+            })
+          }else{
+            next(returnedValue.value)
+          }
+        }
+      }
+      next()
+    }
+    console.log(run(generator))
+  </script>
+</body>
+
+</html>
